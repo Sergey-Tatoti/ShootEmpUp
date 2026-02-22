@@ -1,4 +1,5 @@
 using ShootEmUp;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -8,6 +9,7 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private Button _buttonPlay;
     [SerializeField] private Button _buttonPause;
     [SerializeField] private Button _buttonResume;
+    [SerializeField] private TMP_Text _textTimePlay;
 
     public event UnityAction<GameCycle.GameState> ClickedButtonState;
 
@@ -20,6 +22,12 @@ public class MenuManager : MonoBehaviour
         _buttonPlay.onClick.AddListener(OnClickedButtonPlay);
         _buttonPause.onClick.AddListener(OnClickedButtonPause);
         _buttonResume.onClick.AddListener(OnClickedButtonResume);
+    }
+
+    public void ShowTextTimePlay(int time)
+    {
+        _textTimePlay.gameObject.SetActive(time > 0);
+        _textTimePlay.text = time.ToString();
     }
 
     private void OnClickedButtonPlay()

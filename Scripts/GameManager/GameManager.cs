@@ -1,9 +1,11 @@
+using System.Collections;
 using UnityEngine;
 
 namespace ShootEmUp
 {
     public sealed class GameManager : MonoBehaviour
     {
+        [SerializeField] private int _timePlayGame;
         [SerializeField] private GameCycle _gameCycle;
         [SerializeField] private PlayerManager _playerManager;
         [SerializeField] private EnemysManager _enemyManager;
@@ -35,7 +37,7 @@ namespace ShootEmUp
             switch(gameState)
             {
                 case GameCycle.GameState.Playing:
-                    _gameCycle.PlayGame();
+                    StartCoroutine(TikTimePlayGame());
                     break;
                 case GameCycle.GameState.Resume:
                     _gameCycle.ResumeGame();
@@ -44,6 +46,21 @@ namespace ShootEmUp
                     _gameCycle.PauseGame();
                     break;
             }
+        }
+
+        private IEnumerator TikTimePlayGame()
+        {
+            float elipsedTime = _timePlayGame;
+
+            while (elipsedTime > 0)
+            {
+                _menuManager.ShowTextTimePlay((int)(elipsedTime+0.5f));
+                elipsedTime -= Time.deltaTime;
+
+                yield return null;
+            }
+
+            _gameCycle.PlayGame();
         }
     }
 }
