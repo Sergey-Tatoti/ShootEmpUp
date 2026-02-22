@@ -5,7 +5,7 @@ namespace ShootEmUp
 {
     [RequireComponent(typeof(BulletCreator), typeof(BulletFilter))]
 
-    public sealed class BulletSystem : MonoBehaviour
+    public sealed class BulletSystem : MonoBehaviour, IGameFixedUpdateListener, IGamePlayListener, IGamePauseListener, IGameResumeListener, IGameFinishListener
     {
         [SerializeField] private int _initialCount = 50;
         [Space]
@@ -19,8 +19,6 @@ namespace ShootEmUp
 
         private readonly HashSet<Bullet> _activeBullets = new();
 
-        private void OnDisable() => UnSubscribeEvents();
-
         public void Initialize()
         {
             _bulletFilter = GetComponent<BulletFilter>();
@@ -28,30 +26,38 @@ namespace ShootEmUp
 
             _bulletFilter.Initialize(_levelBounds);
             _bulletCreator.Initialize(_initialCount, _prefab, _container, _worldTransform);
-
-            SubscribeEvents();
         }
-        
-        public void UseActionsFixedTime()
+
+        public void FixedUpdateGame()
         {
             _bulletFilter.UseFilterBullets(_activeBullets);
         }
 
-        public void FlyBulletByArgs(BulletCreator.Args args)
-        {
-            _bulletCreator.CreateBulletByArgs(args);
-        }
-
-        private void SubscribeEvents()
+        public void PlayGame()
         {
             _bulletCreator.CreatedBullet += OnCreatedBullet;
             _bulletFilter.BulletLeavedBounds += OnBulletLeavedBounds;
         }
 
-        private void UnSubscribeEvents()
+        public void PauseGame()
+        {
+            foreach (var activeBullet in _activeBullets) { activeBullet.Activate(false); }
+        }
+
+        public void ResumeGame()
+        {
+            foreach (var activeBullet in _activeBullets) { activeBullet.Activate(true); }
+        }
+
+        public void FinishGame()
         {
             _bulletCreator.CreatedBullet -= OnCreatedBullet;
             _bulletFilter.BulletLeavedBounds -= OnBulletLeavedBounds;
+        }
+
+        public void FlyBulletByArgs(BulletCreator.Args args)
+        {
+            _bulletCreator.CreateBulletByArgs(args);
         }
 
         private void OnCreatedBullet(Bullet bullet)

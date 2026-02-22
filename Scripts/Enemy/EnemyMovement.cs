@@ -24,7 +24,11 @@ public class EnemyMovement : MonoBehaviour
 
     public void ActivateMove() => _coroutineMove = StartCoroutine(Move());
 
-    public void DeactivateMove() => StartCoroutine(Move());
+    public void DeactivateMove()
+    {
+        if (_coroutineMove != null)
+            StopCoroutine(_coroutineMove);
+    }
 
     private IEnumerator Move()
     {

@@ -2,7 +2,7 @@ using ShootEmUp;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class PlayerManager : MonoBehaviour
+public class PlayerManager : MonoBehaviour, IGameUpdateListener, IGameFixedUpdateListener, IGamePlayListener, IGamePauseListener, IGameFinishListener
 {
     [SerializeField] private Player _player;
 
@@ -12,27 +12,19 @@ public class PlayerManager : MonoBehaviour
 
     public event UnityAction DeathedPlayer;
 
-    private void OnDisable() => UnSubscribeEvents();
-
     public void Initialize(BulletSystem bulletSystem)
     {
         _bulletSystem = bulletSystem;
         _player.Initialize();
-
-        SubscribeEvents();
     }
 
-    public void UseActions()
-    {
-        _player.PlayerInput.TryInputKeyCodes();
-    }
+    public void UpdateGame() => _player.PlayerInput.TryInputKeyCodes();
 
-    public void UseActionsFixedTime()
-    {
-        _player.PlayerMovement.Move();
-    }
+    public void FixedUpdateGame() => _player.PlayerMovement.Move();
 
-    private void SubscribeEvents()
+    public void PauseGame() => _player.PlayerMovement.SetDirectionMove(0);
+
+    public void PlayGame()
     {
         _player.PlayerInput.PressedKeyMove += OnPressedKeyMove;
         _player.PlayerInput.PressedKeyShoot += OnPressedKeyShoot;
@@ -40,12 +32,14 @@ public class PlayerManager : MonoBehaviour
         _player.Deathed += OnDeathed;
     }
 
-    private void UnSubscribeEvents()
+    public void FinishGame()
     {
         _player.PlayerInput.PressedKeyMove -= OnPressedKeyMove;
         _player.PlayerInput.PressedKeyShoot -= OnPressedKeyShoot;
         _player.PlayerAttacker.UsedShoot -= OnUsedShoot;
         _player.Deathed -= OnDeathed;
+
+        _player.gameObject.SetActive(false);
     }
 
     private void OnPressedKeyMove(float direction) => _player.PlayerMovement.SetDirectionMove(direction);

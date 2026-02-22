@@ -1,3 +1,4 @@
+using ShootEmUp;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -10,8 +11,11 @@ public class PlayerInput : MonoBehaviour
 
     public void TryInputKeyCodes()
     {
-        TryInputKeyMove();
-        TryInputKeyShoot();
+        if (GameCycle.CurrentGameState == GameCycle.GameState.Playing || GameCycle.CurrentGameState == GameCycle.GameState.Resume)
+        {
+            TryInputKeyMove();
+            TryInputKeyShoot();
+        }
     }
 
     private void TryInputKeyShoot()

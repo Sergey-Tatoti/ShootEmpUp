@@ -1,4 +1,3 @@
-using ShootEmUp;
 using System.Collections;
 using UnityEngine;
 
@@ -30,13 +29,15 @@ public class EnemyAttacker : CharacterAttacker
         return base.TryShoot();
     }
 
-    public void ActivateAttack(Transform target)
-    {
-        _target = target;
-        _coroutineAttack = StartCoroutine(UseAttack());
-    }
+    public void SetTarget(Transform target) => _target = target;
 
-    public void DeactivateAttack() => StopCoroutine(UseAttack());
+    public void ActivateAttack() => _coroutineAttack = StartCoroutine(UseAttack());
+
+    public void DeactivateAttack()
+    {
+        if (_coroutineAttack != null)
+            StopCoroutine(_coroutineAttack);
+    }
 
     public IEnumerator UseAttack()
     {

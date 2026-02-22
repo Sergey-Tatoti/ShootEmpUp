@@ -5,7 +5,7 @@ namespace ShootEmUp
 {
     [RequireComponent(typeof(EnemySpawner))]
 
-    public sealed class EnemyManager : MonoBehaviour
+    public sealed class EnemysManager : MonoBehaviour, IGamePlayListener, IGameFinishListener, IGamePauseListener, IGameResumeListener
     {
         private EnemySpawner _enemySpawner;
         private BulletSystem _bulletSystem;
@@ -13,44 +13,59 @@ namespace ShootEmUp
 
         private readonly List<Enemy> _activeEnemies = new();
 
-        private void OnDisable() => UnSubscribeEvents();
-
         public void Initialize(BulletSystem bulletSystem, Transform target)
         {
             _enemySpawner = GetComponent<EnemySpawner>();
 
             _bulletSystem = bulletSystem;
             _target = target;
-
-            SubscribeEvents();
         }
 
-        public void ActivateEnemys() => _enemySpawner.ActivateSpawnEnemys();
-
-        public void DeactivateEnemys()
+        public void PlayGame()
         {
-            _enemySpawner.DeactivateSpawnEnemys();
+            _enemySpawner.EnemySpawned += OnEnemySpawned;
 
-            for (int i = 0; i < _activeEnemies.Count; i++)
+            _enemySpawner.ActivateSpawnEnemys();
+        }
+
+        public void FinishGame()
+        {
+            _enemySpawner.EnemySpawned -= OnEnemySpawned;
+
+            foreach (var activeEnemy in _activeEnemies)
             {
-                _activeEnemies[i].EnemyAttacker.DeactivateAttack();
+                activeEnemy.EnemyAttacker.UsedShoot -= OnUsedShoot;
+                activeEnemy.EnemyMovement.ReachedPlace -= OnReachedPlace;
             }
         }
 
-        private void SubscribeEvents()
+        public void PauseGame()
         {
-            _enemySpawner.EnemySpawned += OnEnemySpawned;
+            _enemySpawner.DeactivateSpawnEnemys();
+
+            foreach (var activeEnemy in _activeEnemies)
+            {
+                activeEnemy.EnemyAttacker.DeactivateAttack();
+                activeEnemy.EnemyMovement.DeactivateMove();
+            }
         }
 
-        private void UnSubscribeEvents()
+        public void ResumeGame()
         {
-            _enemySpawner.EnemySpawned -= OnEnemySpawned;
+            _enemySpawner.ActivateSpawnEnemys();
+
+            foreach (var activeEnemy in _activeEnemies)
+            {
+                activeEnemy.EnemyAttacker.ActivateAttack();
+                activeEnemy.EnemyMovement.ActivateMove();
+            }
         }
 
         private void OnEnemySpawned(Enemy enemy)
         {
             _activeEnemies.Add(enemy);
             enemy.EnemyMovement.ActivateMove();
+            enemy.EnemyAttacker.SetTarget(_target);
 
             enemy.EnemyAttacker.UsedShoot += OnUsedShoot;
             enemy.EnemyMovement.ReachedPlace += OnReachedPlace;
@@ -60,7 +75,7 @@ namespace ShootEmUp
         private void OnReachedPlace(Enemy enemy)
         {
             if (enemy != null)
-                enemy.EnemyAttacker.ActivateAttack(_target);
+                enemy.EnemyAttacker.ActivateAttack();
         }
 
         private void OnDeathed(Character character)
